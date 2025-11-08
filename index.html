@@ -1,0 +1,35 @@
+import fetch from "node-fetch";
+
+export default async function handler(req, res) {
+  try {
+    const videoUrl = req.query.url;
+
+    if (!videoUrl) {
+      return res.status(400).json({ error: "No URL provided" });
+    }
+
+    const sources = [
+      "https://api.sssapi.app/?url=",
+      "https://api.nx-x.com/download?url=",
+      "https://api.ssscraper.com/?url=",
+      "https://www.tikwm.com/api/?url="
+    ];
+
+    for (let base of sources) {
+      try {
+        const r = await fetch(base + encodeURIComponent(videoUrl));
+        const contentType = r.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+          const data = await r.json();
+          return res.status(200).json({ ok: true, data });
+        }
+      } catch (e) {}
+    }
+
+    return res.status(500).json({ ok: false, message: "Unable to find video" });
+
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.toString() });
+  }
+}
